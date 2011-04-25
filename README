@@ -3,4 +3,4 @@ string bsdconv(resource handle, string data)
 bool bsdconv_destroy(resource handle)
 array bsdconv_info(resource handle);
 
-see ../testscript/bsdconv.php for example
+see example.php for example
