@@ -1,6 +1,8 @@
 resource bsdconv_create(string conversion)
 string bsdconv(resource handle, string data)
+bool bsdconv_file(resource handle, string fromfile, string tofile)
 bool bsdconv_destroy(resource handle)
 array bsdconv_info(resource handle);
+string bsdconv_error(void)
 
 see example.php for example
