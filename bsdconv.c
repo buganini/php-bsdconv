@@ -174,6 +174,7 @@ PHP_FUNCTION(bsdconv_info){
 	array_init(return_value);
 	add_assoc_long(return_value, "ierr", p->ierr);
 	add_assoc_long(return_value, "oerr", p->oerr);
+	add_assoc_long(return_value, "score", p->score);
 }
 /* }}} */
 
