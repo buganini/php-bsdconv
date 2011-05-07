@@ -185,7 +185,7 @@ PHP_FUNCTION(bsdconv){
 /* }}} */
 
 /* {{{ proto mixed bsdconv_chunk(resource ins, string str)
-  bsdconv converting function without initialize and flushing
+  bsdconv converting function without initializing and flushing
 */
 PHP_FUNCTION(bsdconv_chunk){
 	zval *r=NULL;
@@ -216,7 +216,7 @@ PHP_FUNCTION(bsdconv_chunk){
 /* }}} */
 
 /* {{{ proto mixed bsdconv_last(resource ins, string str)
-  bsdconv converting function without initialize
+  bsdconv converting function without initializing
 */
 PHP_FUNCTION(bsdconv_chunk_last){
 	zval *r=NULL;
