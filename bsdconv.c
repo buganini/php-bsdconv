@@ -51,6 +51,92 @@ PHP_FUNCTION(bsdconv_create){
 }
 /* }}} */
 
+/* {{{ proto int bsdconv_insert_phase(resource ins, string conversion, int phase_type, int phasen)
+  alter bsdconv instance */
+PHP_FUNCTION(bsdconv_insert_phase){
+	char *c;
+	int l;
+	long phase_type;
+	long phasen;
+	zval *r=NULL;
+	struct bsdconv_instance *ins;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsll", &r, &c, &l, &phase_type, &phasen) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	if(r==NULL) RETURN_LONG(-1);
+	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
+	RETURN_LONG(bsdconv_insert_phase(ins, c, phase_type, phasen));
+}
+/* }}} */
+
+/* {{{ proto int bsdconv_insert_codec(resource ins, string conversion, int phasen, int codecn)
+  alter bsdconv instance */
+PHP_FUNCTION(bsdconv_insert_codec){
+	char *c;
+	int l;
+	long phasen;
+	long codecn;
+	zval *r=NULL;
+	struct bsdconv_instance *ins;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsll", &r, &c, &l, &phasen, &codecn) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	if(r==NULL) RETURN_LONG(-1);
+	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
+	RETURN_LONG(bsdconv_insert_codec(ins, c, phasen, codecn));
+}
+/* }}} */
+
+/* {{{ proto int bsdconv_replace_phase(resource ins, string conversion, int phase_type, int phasen)
+  alter bsdconv instance */
+PHP_FUNCTION(bsdconv_replace_phase){
+	char *c;
+	int l;
+	long phase_type;
+	long phasen;
+	zval *r=NULL;
+	struct bsdconv_instance *ins;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsll", &r, &c, &l, &phase_type, &phasen) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	if(r==NULL) RETURN_LONG(-1);
+	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
+	RETURN_LONG(bsdconv_replace_phase(ins, c, phase_type, phasen));
+}
+/* }}} */
+
+/* {{{ proto int bsdconv_replace_codec(resource ins, string conversion, int phasen, int codecn)
+  alter bsdconv instance */
+PHP_FUNCTION(bsdconv_replace_codec){
+	char *c;
+	int l;
+	long phasen;
+	long codecn;
+	zval *r=NULL;
+	struct bsdconv_instance *ins;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsll", &r, &c, &l, &phasen, &codecn) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	if(r==NULL) RETURN_LONG(-1);
+	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
+	RETURN_LONG(bsdconv_replace_codec(ins, c, phasen, codecn));
+}
+/* }}} */
+
+/* {{{ proto void bsdconv_init(resource ins)
+  initialize/reset bsdconv instance */
+PHP_FUNCTION(bsdconv_init){
+	zval *r=NULL;
+	struct bsdconv_instance *ins;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &r) == FAILURE){
+		RETURN_BOOL(0);
+	}
+
+	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
+	bsdconv_init(ins);
+}
+/* }}} */
+
 /* {{{ proto bool bsdconv_destroy(resource ins)
   destroy bsdconv instance */
 PHP_FUNCTION(bsdconv_destroy){
@@ -83,6 +169,69 @@ PHP_FUNCTION(bsdconv){
 		RETURN_BOOL(0);
 	}
 	bsdconv_init(ins);
+	ins->output_mode=BSDCONV_PREMALLOCED;
+	ins->input.data=c;
+	ins->input.len=l;
+	ins->input.flags=0;
+	ins->output.data=NULL;
+	ins->flush=1;
+	bsdconv(ins);
+
+	ins->output.data=emalloc(ins->output.len);
+	bsdconv(ins);
+
+	RETURN_STRINGL(ins->output.data, ins->output.len, 0);
+}
+/* }}} */
+
+/* {{{ proto mixed bsdconv_chunk(resource ins, string str)
+  bsdconv main function
+*/
+PHP_FUNCTION(bsdconv_chunk){
+	zval *r=NULL;
+	struct bsdconv_instance *ins;
+	char *c;
+	int l;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &r, &c, &l) == FAILURE){
+		RETURN_BOOL(0);
+	}
+
+	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
+
+	if(ins==NULL){
+		RETURN_BOOL(0);
+	}
+	ins->output_mode=BSDCONV_PREMALLOCED;
+	ins->input.data=c;
+	ins->input.len=l;
+	ins->input.flags=0;
+	ins->output.data=NULL;
+	bsdconv(ins);
+
+	ins->output.data=emalloc(ins->output.len);
+	bsdconv(ins);
+
+	RETURN_STRINGL(ins->output.data, ins->output.len, 0);
+}
+/* }}} */
+
+/* {{{ proto mixed bsdconv_last(resource ins, string str)
+  bsdconv main function
+*/
+PHP_FUNCTION(bsdconv_chunk_last){
+	zval *r=NULL;
+	struct bsdconv_instance *ins;
+	char *c;
+	int l;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &r, &c, &l) == FAILURE){
+		RETURN_BOOL(0);
+	}
+
+	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
+
+	if(ins==NULL){
+		RETURN_BOOL(0);
+	}
 	ins->output_mode=BSDCONV_PREMALLOCED;
 	ins->input.data=c;
 	ins->input.len=l;
@@ -197,8 +346,15 @@ zend_function_entry bsdconv_functions[] = {
 	PHP_FE(bsdconv_create,	NULL)
 	PHP_FE(bsdconv_destroy,	NULL)
 	PHP_FE(bsdconv_info,	NULL)
-	PHP_FE(bsdconv,	NULL)
+	PHP_FE(bsdconv,		NULL)
+	PHP_FE(bsdconv_init,	NULL)
+	PHP_FE(bsdconv_chunk,	NULL)
+	PHP_FE(bsdconv_chunk_last,NULL)
 	PHP_FE(bsdconv_file,	NULL)
+	PHP_FE(bsdconv_insert_phase,NULL)
+	PHP_FE(bsdconv_insert_codec,NULL)
+	PHP_FE(bsdconv_replace_phase,NULL)
+	PHP_FE(bsdconv_replace_codec,NULL)
 	PHP_FE(bsdconv_error,	NULL)
 	{NULL, NULL, NULL}	/* Must be the last line in bsdconv_functions[] */
 };
@@ -233,6 +389,9 @@ ZEND_GET_MODULE(bsdconv)
 PHP_MINIT_FUNCTION(bsdconv)
 {
 	le_bsdconv = zend_register_list_destructors_ex(bsdconv_dtor, NULL, LE_BSDCONV_DESC, module_number);
+	REGISTER_LONG_CONSTANT("BSDCONV_FROM", FROM, CONST_CS|CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("BSDCONV_INTER", INTER, CONST_CS|CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("BSDCONV_TO", TO, CONST_CS|CONST_PERSISTENT);
 	return SUCCESS;
 }
 /* }}} */
