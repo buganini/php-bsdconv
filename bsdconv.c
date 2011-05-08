@@ -258,6 +258,7 @@ PHP_FUNCTION(bsdconv_file){
 	FILE *inf, *otf;
 	char *in;
 	char *tmp;
+	int fd;
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &r, &s1, &l, &s2, &l2) == FAILURE){
 		RETURN_BOOL(0);
@@ -274,11 +275,11 @@ PHP_FUNCTION(bsdconv_file){
 	tmp=malloc(l2+8);
 	strcpy(tmp, s2);
 	strcat(tmp, ".XXXXXX");
-	if(mktemp(tmp)==NULL){
+	if((fd=mkstemp(tmp))==-1){
 		free(tmp);
 		RETURN_BOOL(0);
 	}
-	otf=fopen(tmp,"w");
+	otf=fdopen(fd,"w");
 	if(!otf){
 		free(tmp);
 		RETURN_BOOL(0);
