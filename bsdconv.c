@@ -309,13 +309,19 @@ PHP_METHOD(Bsdconv, info){
   bsdconv conversion
 */
 PHP_METHOD(Bsdconv, __toString){
+#define TEMPLATE "Bsdconv(\"%s\")"
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
 	char *s;
-
+	char *s2;
+	int len=sizeof(TEMPLATE);
 	s=bsdconv_pack(ins);
-	RETVAL_STRING(s, 1);
+	len+=strlen(s);
+	s2=malloc(len);
+	sprintf(s2, TEMPLATE, s);
 	free(s);
+	RETVAL_STRING(s2, 1);
+	free(s2);
 }
 /* }}} */
 
@@ -417,7 +423,7 @@ zend_module_entry bsdconv_module_entry = {
 	NULL,
 	PHP_MINFO(bsdconv),
 #if ZEND_MODULE_API_NO >= 20010901
-	"6.5", /* Replace with version number for your extension */
+	"6.6", /* Replace with version number for your extension */
 #endif
 	STANDARD_MODULE_PROPERTIES
 };
