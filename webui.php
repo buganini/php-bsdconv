@@ -1,23 +1,21 @@
 <?php
 $info=array();
 function getlist($c){
-	$pre='/usr/local/share/bsdconv/'.$c.'/';
-	$s=glob($pre.'*');
+	$s=bsdconv_codecs_list();
+	$s=$s[$c];
 	$r=array();
 	foreach($s as $a){
-		if(!preg_match('/\\.so$/',$a)){
-			$r[]=str_replace($pre,'',$a);
-		}
+		$r[]=str_replace($pre,'',$a);
 	}
 	echo implode('<br />',$r);
 }
 
 if(isset($_POST['conversion'])){
-	$p=bsdconv_create($_POST['conversion']);
-	if($p!==false){
-		$text=bsdconv($p, $_POST['text']);
-		$info=bsdconv_info($p);
-		bsdconv_destroy($p);
+	$c=new Bsdconv($_POST['conversion']);
+	if($c){
+		$text=$c->conv($_POST['text']);
+		$info=$c->info($c);
+		unset($c);
 	}
 }
 ?><html>
@@ -34,11 +32,11 @@ if(isset($_POST['conversion'])){
 </head>
 <body style="background: #abf;">
 <?php
-$p=bsdconv_create("utf-8,ascii:ascii-html-info");
-echo bsdconv($p, $text);
-bsdconv_destroy($p);
+$c=new Bsdconv("utf-8,ascii:ascii-html-info");
+echo $c->conv($text);
+unset($c);
 ?>
-<form action="bsdconv.php" method="post">
+<form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post">
 <input style="width: 50%;" type="text" name="conversion" id="conversion" value="<?php
 	echo htmlspecialchars($_POST['conversion']);
 ?>"/>
