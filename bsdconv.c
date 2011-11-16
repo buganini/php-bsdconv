@@ -27,6 +27,10 @@
 #include <bsdconv.h>
 
 
+zend_class_entry *bsdconv_ce;
+
+zend_object_handlers bsdconv_object_handlers;
+
 struct bsdconv_object {
     zend_object std;
     struct bsdconv_instance *ins;
@@ -60,7 +64,7 @@ PHP_METHOD(Bsdconv, __destruct){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
 	bsdconv_destroy(ins);
-	obj->ins=NULL;
+	RETURN_BOOL(1);
 }
 
 /* }}} */
@@ -302,7 +306,7 @@ PHP_METHOD(Bsdconv, info){
 /* }}} */
 
 /* {{{ proto array __toString()
-  bsdconv conversion info function
+  bsdconv conversion
 */
 PHP_METHOD(Bsdconv, __toString){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
@@ -373,6 +377,27 @@ zend_module_entry bsdconv_module_entry = {
 };
 /* }}} */
 
+void bsdconv_free_storage(void *object TSRMLS_DC)
+{
+	efree(object);
+}
+
+zend_object_value bsdconv_create_handler(zend_class_entry *type TSRMLS_DC)
+{
+	zval *tmp;
+	zend_object_value retval;
+
+	struct bsdconv_object *obj = (struct bsdconv_object *)emalloc(sizeof(struct bsdconv_object));
+	memset(obj, 0, sizeof(struct bsdconv_object));
+	obj->std.ce = type;
+
+
+	retval.handle = zend_objects_store_put(obj, NULL, bsdconv_free_storage, NULL TSRMLS_CC);
+	retval.handlers = &bsdconv_object_handlers;
+
+	return retval;
+}
+
 #ifdef COMPILE_DL_BSDCONV
 ZEND_GET_MODULE(bsdconv)
 #endif
@@ -383,7 +408,10 @@ PHP_MINIT_FUNCTION(bsdconv)
 {
 	zend_class_entry ce;
 	INIT_CLASS_ENTRY(ce, "Bsdconv", bsdconv_methods);
-	zend_register_internal_class(&ce TSRMLS_CC);
+	bsdconv_ce = zend_register_internal_class(&ce TSRMLS_CC);
+	bsdconv_ce->create_object = bsdconv_create_handler;
+	memcpy(&bsdconv_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+	bsdconv_object_handlers.clone_obj = NULL;
 	REGISTER_LONG_CONSTANT("BSDCONV_FROM", FROM, CONST_CS|CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("BSDCONV_INTER", INTER, CONST_CS|CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("BSDCONV_TO", TO, CONST_CS|CONST_PERSISTENT);
