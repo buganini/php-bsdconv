@@ -330,6 +330,50 @@ PHP_FUNCTION(bsdconv_error){
 }
 /* }}} */
 
+/* {{{ proto array bsdconv_codecs_list(void)
+  list codecs
+*/
+PHP_FUNCTION(bsdconv_codecs_list){
+	array_init(return_value);
+	zval *tmp;
+	int i;
+	char *type[]={"from","inter","to"};
+	char **list;
+	char **p;
+	list=bsdconv_codecs_list();
+	p=list;
+	for(i=0;i<3;++i){
+		MAKE_STD_ZVAL(tmp);
+		array_init(tmp);
+		while(*p!=NULL){
+			add_next_index_string(tmp, *p, 1);
+			free(*p);
+			p+=1;
+		}
+		add_assoc_zval(return_value, type[i], tmp);
+		p+=1;
+	}
+	free(list);
+}
+/* }}} */
+
+/* {{{ proto bool bsdconv_codec_check(int type, string codec)
+  check if a codec is available
+*/
+PHP_FUNCTION(bsdconv_codec_check){
+	char *c;
+	int l;
+	long phase_type;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls", &phase_type, &c, &l) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	if(bsdconv_codec_check(phase_type, c)){
+		RETURN_BOOL(1);
+	}
+	RETURN_BOOL(0);
+}
+/* }}} */
+
 function_entry bsdconv_methods[] = {
 	PHP_ME(Bsdconv,  __construct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 	PHP_ME(Bsdconv,  __destruct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
@@ -352,7 +396,9 @@ function_entry bsdconv_methods[] = {
  * Every user visible function must have an entry in bsdconv_functions[].
  */
 zend_function_entry bsdconv_functions[] = {
-	PHP_FE(bsdconv_error,	NULL)
+	PHP_FE(bsdconv_error,		NULL)
+	PHP_FE(bsdconv_codecs_list,	NULL)
+	PHP_FE(bsdconv_codec_check,	NULL)
 	{NULL, NULL, NULL}	/* Must be the last line in bsdconv_functions[] */
 };
 /* }}} */
