@@ -23,12 +23,14 @@
 #include "ext/standard/info.h"
 #include "php_bsdconv.h"
 
-/* True global resources - no need for thread safety here */
-static int le_bsdconv;
 
 #include <bsdconv.h>
 
-#define LE_BSDCONV_DESC "bsdconv instance"
+
+struct bsdconv_object {
+    zend_object std;
+    struct bsdconv_instance *ins;
+};
 
 #define IBUFLEN 1024
 
@@ -36,134 +38,116 @@ static void bsdconv_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC){
 	bsdconv_destroy((struct bsdconv_instance *) rsrc->ptr);
 }
 
-/* {{{ proto resource bsdconv_create(string conversion)
+/* {{{ proto resource __construct(string conversion)
   create bsdconv instance */
-PHP_FUNCTION(bsdconv_create){
+PHP_METHOD(Bsdconv,  __construct){
 	char *c;
 	int l;
-	struct bsdconv_instance *r;
+	struct bsdconv_instance *ins;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &c, &l) == FAILURE){
 		return;
 	}
-	r=bsdconv_create(c);
-	if(r==NULL) RETURN_BOOL(0);
-	ZEND_REGISTER_RESOURCE(return_value, r, le_bsdconv);
+	ins=bsdconv_create(c);
+	if(ins==NULL)  RETURN_NULL();
+	struct bsdconv_object *obj = (struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	obj->ins = ins;
 }
 /* }}} */
 
-/* {{{ proto int bsdconv_insert_phase(resource ins, string conversion, int phase_type, int phasen)
+/* {{{ proto int __destruct()
+  destroy bsdconv instance */
+PHP_METHOD(Bsdconv, __destruct){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
+	bsdconv_destroy(ins);
+	obj->ins=NULL;
+}
+
+/* }}} */
+/* {{{ proto int insert_phase(string conversion, int phase_type, int phasen)
   alter bsdconv instance */
-PHP_FUNCTION(bsdconv_insert_phase){
+PHP_METHOD(Bsdconv, insert_phase){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
 	char *c;
 	int l;
 	long phase_type;
 	long phasen;
-	zval *r=NULL;
-	struct bsdconv_instance *ins;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsll", &r, &c, &l, &phase_type, &phasen) == FAILURE){
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll", &c, &l, &phase_type, &phasen) == FAILURE){
 		RETURN_LONG(-1);
 	}
-	if(r==NULL) RETURN_LONG(-1);
-	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
 	RETURN_LONG(bsdconv_insert_phase(ins, c, phase_type, phasen));
 }
 /* }}} */
 
-/* {{{ proto int bsdconv_insert_codec(resource ins, string conversion, int phasen, int codecn)
+/* {{{ proto int insert_codec(resource ins, string conversion, int phasen, int codecn)
   alter bsdconv instance */
-PHP_FUNCTION(bsdconv_insert_codec){
-	char *c;
+PHP_METHOD(Bsdconv, insert_codec){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;	char *c;
 	int l;
 	long phasen;
 	long codecn;
-	zval *r=NULL;
-	struct bsdconv_instance *ins;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsll", &r, &c, &l, &phasen, &codecn) == FAILURE){
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll", &c, &l, &phasen, &codecn) == FAILURE){
 		RETURN_LONG(-1);
 	}
-	if(r==NULL) RETURN_LONG(-1);
-	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
 	RETURN_LONG(bsdconv_insert_codec(ins, c, phasen, codecn));
 }
 /* }}} */
 
-/* {{{ proto int bsdconv_replace_phase(resource ins, string conversion, int phase_type, int phasen)
+/* {{{ proto int replace_phase(resource ins, string conversion, int phase_type, int phasen)
   alter bsdconv instance */
-PHP_FUNCTION(bsdconv_replace_phase){
+PHP_METHOD(Bsdconv, replace_phase){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
 	char *c;
 	int l;
 	long phase_type;
 	long phasen;
-	zval *r=NULL;
-	struct bsdconv_instance *ins;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsll", &r, &c, &l, &phase_type, &phasen) == FAILURE){
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll", &c, &l, &phase_type, &phasen) == FAILURE){
 		RETURN_LONG(-1);
 	}
-	if(r==NULL) RETURN_LONG(-1);
-	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
 	RETURN_LONG(bsdconv_replace_phase(ins, c, phase_type, phasen));
 }
 /* }}} */
 
-/* {{{ proto int bsdconv_replace_codec(resource ins, string conversion, int phasen, int codecn)
+/* {{{ proto int replace_codec(resource ins, string conversion, int phasen, int codecn)
   alter bsdconv instance */
-PHP_FUNCTION(bsdconv_replace_codec){
+PHP_METHOD(Bsdconv, replace_codec){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
 	char *c;
 	int l;
 	long phasen;
 	long codecn;
 	zval *r=NULL;
-	struct bsdconv_instance *ins;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsll", &r, &c, &l, &phasen, &codecn) == FAILURE){
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll", &c, &l, &phasen, &codecn) == FAILURE){
 		RETURN_LONG(-1);
 	}
-	if(r==NULL) RETURN_LONG(-1);
-	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
 	RETURN_LONG(bsdconv_replace_codec(ins, c, phasen, codecn));
 }
 /* }}} */
 
-/* {{{ proto void bsdconv_init(resource ins)
+/* {{{ proto void init()
   initialize/reset bsdconv instance */
-PHP_FUNCTION(bsdconv_init){
-	zval *r=NULL;
-	struct bsdconv_instance *ins;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &r) == FAILURE){
-		RETURN_BOOL(0);
-	}
-
-	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
+PHP_METHOD(Bsdconv, init){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
 	bsdconv_init(ins);
 }
 /* }}} */
 
-/* {{{ proto bool bsdconv_destroy(resource ins)
-  destroy bsdconv instance */
-PHP_FUNCTION(bsdconv_destroy){
-	zval *p=NULL;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &p) == FAILURE){
-		RETURN_BOOL(0);
-	}
-	if(zend_list_delete(Z_RESVAL_P(p)) == FAILURE){
-		RETURN_BOOL(0);
-	}
-	RETURN_BOOL(1);
-}
-/* }}} */
-
-/* {{{ proto mixed bsdconv(resource ins, string str)
+/* {{{ proto mixed conv(string str)
   bsdconv main function
 */
-PHP_FUNCTION(bsdconv){
-	zval *r=NULL;
-	struct bsdconv_instance *ins;
+PHP_METHOD(Bsdconv, conv){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
 	char *c;
 	int l;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &r, &c, &l) == FAILURE){
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &c, &l) == FAILURE){
 		RETURN_BOOL(0);
 	}
-
-	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
 
 	if(ins==NULL){
 		RETURN_BOOL(0);
@@ -184,19 +168,17 @@ PHP_FUNCTION(bsdconv){
 }
 /* }}} */
 
-/* {{{ proto mixed bsdconv_chunk(resource ins, string str)
+/* {{{ proto mixed conv_chunk(string str)
   bsdconv converting function without initializing and flushing
 */
-PHP_FUNCTION(bsdconv_chunk){
-	zval *r=NULL;
-	struct bsdconv_instance *ins;
+PHP_METHOD(Bsdconv, conv_chunk){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
 	char *c;
 	int l;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &r, &c, &l) == FAILURE){
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &c, &l) == FAILURE){
 		RETURN_BOOL(0);
 	}
-
-	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
 
 	if(ins==NULL){
 		RETURN_BOOL(0);
@@ -215,19 +197,17 @@ PHP_FUNCTION(bsdconv_chunk){
 }
 /* }}} */
 
-/* {{{ proto mixed bsdconv_last(resource ins, string str)
+/* {{{ proto mixed conv_chunk_last(string str)
   bsdconv converting function without initializing
 */
-PHP_FUNCTION(bsdconv_chunk_last){
-	zval *r=NULL;
-	struct bsdconv_instance *ins;
+PHP_METHOD(Bsdconv, conv_chunk_last){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
 	char *c;
 	int l;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &r, &c, &l) == FAILURE){
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &c, &l) == FAILURE){
 		RETURN_BOOL(0);
 	}
-
-	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
 
 	if(ins==NULL){
 		RETURN_BOOL(0);
@@ -247,12 +227,12 @@ PHP_FUNCTION(bsdconv_chunk_last){
 }
 /* }}} */
 
-/* {{{ proto mixed bsdconv_file(resource ins, string infile, string outfile)
+/* {{{ proto mixed conv_file(string infile, string outfile)
   bsdconv_file function
 */
-PHP_FUNCTION(bsdconv_file){
-	zval *r=NULL;
-	struct bsdconv_instance *ins;
+PHP_METHOD(Bsdconv, conv_file){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
 	char *s1, *s2;
 	int l,l2;
 	FILE *inf, *otf;
@@ -260,11 +240,9 @@ PHP_FUNCTION(bsdconv_file){
 	char *tmp;
 	int fd;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &r, &s1, &l, &s2, &l2) == FAILURE){
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &s1, &l, &s2, &l2) == FAILURE){
 		RETURN_BOOL(0);
 	}
-
-	ZEND_FETCH_RESOURCE(ins, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
 
 	if(ins==NULL){
 		RETURN_BOOL(0);
@@ -309,26 +287,21 @@ PHP_FUNCTION(bsdconv_file){
 }
 /* }}} */
 
-/* {{{ proto array bsdconv_info(resource ins)
+/* {{{ proto array info()
   bsdconv conversion info function
 */
-PHP_FUNCTION(bsdconv_info){
-	zval *r=NULL;
-	struct bsdconv_instance *p;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &r) == FAILURE){
-		RETURN_BOOL(0);
-	}
-
-	ZEND_FETCH_RESOURCE(p, struct bsdconv_instance *, &r, -1, LE_BSDCONV_DESC, le_bsdconv);
+PHP_METHOD(Bsdconv, info){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
 
 	array_init(return_value);
-	add_assoc_long(return_value, "ierr", p->ierr);
-	add_assoc_long(return_value, "oerr", p->oerr);
-	add_assoc_long(return_value, "score", p->score);
+	add_assoc_long(return_value, "ierr", ins->ierr);
+	add_assoc_long(return_value, "oerr", ins->oerr);
+	add_assoc_long(return_value, "score", ins->score);
 }
 /* }}} */
 
-/* {{{ proto string bsdconv(void)
+/* {{{ proto string bsdconv_error(void)
   bsdconv error message
 */
 PHP_FUNCTION(bsdconv_error){
@@ -339,23 +312,27 @@ PHP_FUNCTION(bsdconv_error){
 }
 /* }}} */
 
+function_entry bsdconv_methods[] = {
+	PHP_ME(Bsdconv,  __construct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+	PHP_ME(Bsdconv,  __destruct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
+	PHP_ME(Bsdconv, insert_phase,	NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, insert_codec,	NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, replace_phase,	NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, replace_codec,	NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, conv,		NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, init,		NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, conv_chunk,	NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, conv_chunk_last,NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, conv_file,	NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, info,		NULL, ZEND_ACC_PUBLIC)
+	{NULL, NULL, NULL}
+};
+
 /* {{{ bsdconv_functions[]
  *
  * Every user visible function must have an entry in bsdconv_functions[].
  */
 zend_function_entry bsdconv_functions[] = {
-	PHP_FE(bsdconv_create,	NULL)
-	PHP_FE(bsdconv_destroy,	NULL)
-	PHP_FE(bsdconv_info,	NULL)
-	PHP_FE(bsdconv,		NULL)
-	PHP_FE(bsdconv_init,	NULL)
-	PHP_FE(bsdconv_chunk,	NULL)
-	PHP_FE(bsdconv_chunk_last,NULL)
-	PHP_FE(bsdconv_file,	NULL)
-	PHP_FE(bsdconv_insert_phase,NULL)
-	PHP_FE(bsdconv_insert_codec,NULL)
-	PHP_FE(bsdconv_replace_phase,NULL)
-	PHP_FE(bsdconv_replace_codec,NULL)
 	PHP_FE(bsdconv_error,	NULL)
 	{NULL, NULL, NULL}	/* Must be the last line in bsdconv_functions[] */
 };
@@ -375,7 +352,7 @@ zend_module_entry bsdconv_module_entry = {
 	NULL,
 	PHP_MINFO(bsdconv),
 #if ZEND_MODULE_API_NO >= 20010901
-	"5.0", /* Replace with version number for your extension */
+	"6.5", /* Replace with version number for your extension */
 #endif
 	STANDARD_MODULE_PROPERTIES
 };
@@ -389,7 +366,9 @@ ZEND_GET_MODULE(bsdconv)
  */
 PHP_MINIT_FUNCTION(bsdconv)
 {
-	le_bsdconv = zend_register_list_destructors_ex(bsdconv_dtor, NULL, LE_BSDCONV_DESC, module_number);
+	zend_class_entry ce;
+	INIT_CLASS_ENTRY(ce, "Bsdconv", bsdconv_methods);
+	zend_register_internal_class(&ce TSRMLS_CC);
 	REGISTER_LONG_CONSTANT("BSDCONV_FROM", FROM, CONST_CS|CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("BSDCONV_INTER", INTER, CONST_CS|CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("BSDCONV_TO", TO, CONST_CS|CONST_PERSISTENT);

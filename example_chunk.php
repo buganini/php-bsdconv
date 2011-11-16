@@ -1,19 +1,19 @@
 #!/usr/bin/env php
 <?php
 $f=fopen('php://stdin','r');
-$cd=bsdconv_create($argv[1]);
-if($cd===false){
+$c=new Bsdconv($argv[1]);
+if(!$c){
 	echo bsdconv_error()."\n";
 	exit;
 }
-bsdconv_insert_phase($cd, 'normal_score', BSDCONV_INTER, 1);
-bsdconv_init($cd);
+$c->insert_phase('normal_score', BSDCONV_INTER, 1);
+$c->init();
 while(!feof($f)){
-	echo bsdconv_chunk($cd,fread($f,1024));
+	echo $c->conv_chunk(fread($f,1024));
 }
-echo bsdconv_chunk_last($cd,'');
-$i=bsdconv_info($cd);
-bsdconv_destroy($cd);
+echo $c->conv_chunk_last('');
+$i=$c->info();
+unset($c);
 echo "\n\n=======Conversino Info=======\n";
 print_r($i);
 ?>
