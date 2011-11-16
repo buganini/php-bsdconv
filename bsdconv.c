@@ -301,6 +301,20 @@ PHP_METHOD(Bsdconv, info){
 }
 /* }}} */
 
+/* {{{ proto array __toString()
+  bsdconv conversion info function
+*/
+PHP_METHOD(Bsdconv, __toString){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
+	char *s;
+
+	s=bsdconv_pack(ins);
+	RETVAL_STRING(s, 1);
+	free(s);
+}
+/* }}} */
+
 /* {{{ proto string bsdconv_error(void)
   bsdconv error message
 */
@@ -315,6 +329,7 @@ PHP_FUNCTION(bsdconv_error){
 function_entry bsdconv_methods[] = {
 	PHP_ME(Bsdconv,  __construct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 	PHP_ME(Bsdconv,  __destruct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
+	PHP_ME(Bsdconv,  __toString,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
 	PHP_ME(Bsdconv, insert_phase,	NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, insert_codec,	NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, replace_phase,	NULL, ZEND_ACC_PUBLIC)
