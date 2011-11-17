@@ -336,27 +336,23 @@ PHP_FUNCTION(bsdconv_error){
 }
 /* }}} */
 
-/* {{{ proto array bsdconv_codecs_list(void)
+/* {{{ proto array bsdconv_codecs_list(integer)
   list codecs
 */
 PHP_FUNCTION(bsdconv_codecs_list){
 	array_init(return_value);
-	zval *tmp;
-	int i;
-	char *type[]={"from","inter","to"};
 	char **list;
 	char **p;
-	list=bsdconv_codecs_list();
+	long phase_type;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &phase_type) == FAILURE){
+		RETURN_BOOL(0);
+	}
+	
+	list=bsdconv_codecs_list(phase_type);
 	p=list;
-	for(i=0;i<3;++i){
-		MAKE_STD_ZVAL(tmp);
-		array_init(tmp);
-		while(*p!=NULL){
-			add_next_index_string(tmp, *p, 1);
-			free(*p);
-			p+=1;
-		}
-		add_assoc_zval(return_value, type[i], tmp);
+	while(*p!=NULL){
+		add_next_index_string(return_value, *p, 1);
+		free(*p);
 		p+=1;
 	}
 	free(list);
