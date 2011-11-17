@@ -1,12 +1,7 @@
 <?php
 $info=array();
 function getlist($c){
-	$s=bsdconv_codecs_list();
-	$s=$s[$c];
-	$r=array();
-	foreach($s as $a){
-		$r[]=str_replace($pre,'',$a);
-	}
+	$r=bsdconv_codecs_list($c);
 	echo implode('<br />',$r);
 }
 
@@ -66,9 +61,9 @@ echo htmlspecialchars($text);
 ?>
 <hr />
 <div>
-<span><h4>From:</h4><?php echo getlist('from');?></span>
-<span><h4>Inter:</h4><?php echo getlist('inter');?></span>
-<span><h4>To:</h4><?php echo getlist('to');?></span>
+<span><h4>From:</h4><?php echo getlist(BSDCONV_FROM);?></span>
+<span><h4>Inter:</h4><?php echo getlist(BSDCONV_INTER);?></span>
+<span><h4>To:</h4><?php echo getlist(BSDCONV_TO);?></span>
 </div>
 <script type="text/javascript">
 	if(document.getElementById('conversion').value==''){
