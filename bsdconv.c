@@ -376,7 +376,7 @@ PHP_FUNCTION(bsdconv_codec_check){
 }
 /* }}} */
 
-function_entry bsdconv_methods[] = {
+zend_function_entry bsdconv_methods[] = {
 	PHP_ME(Bsdconv,  __construct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 	PHP_ME(Bsdconv,  __destruct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
 	PHP_ME(Bsdconv,  __toString,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
