@@ -302,6 +302,9 @@ PHP_METHOD(Bsdconv, info){
 	add_assoc_long(return_value, "ierr", ins->ierr);
 	add_assoc_long(return_value, "oerr", ins->oerr);
 	add_assoc_long(return_value, "score", ins->score);
+	add_assoc_long(return_value, "full", ins->full);
+	add_assoc_long(return_value, "half", ins->half);
+	add_assoc_long(return_value, "ambi", ins->ambi);
 }
 /* }}} */
 
