@@ -411,9 +411,7 @@ zend_function_entry bsdconv_functions[] = {
 /* {{{ bsdconv_module_entry
  */
 zend_module_entry bsdconv_module_entry = {
-#if ZEND_MODULE_API_NO >= 20010901
 	STANDARD_MODULE_HEADER,
-#endif
 	"bsdconv",
 	bsdconv_functions,
 	PHP_MINIT(bsdconv),
@@ -421,9 +419,7 @@ zend_module_entry bsdconv_module_entry = {
 	NULL,
 	NULL,
 	PHP_MINFO(bsdconv),
-#if ZEND_MODULE_API_NO >= 20010901
-	"7.0", /* Replace with version number for your extension */
-#endif
+	"7.3", /* Replace with version number for your extension */
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
