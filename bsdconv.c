@@ -269,7 +269,7 @@ PHP_METHOD(Bsdconv, conv_file){
 
 	bsdconv_init(ins);
 	do{
-		in=malloc(IBUFLEN);
+		in=bsdconv_malloc(IBUFLEN);
 		ins->input.data=in;
 		ins->input.len=fread(in, 1, IBUFLEN, inf);
 		ins->input.flags|=F_FREE;
@@ -322,7 +322,7 @@ PHP_METHOD(Bsdconv, __toString){
 	len+=strlen(s);
 	s2=malloc(len);
 	sprintf(s2, TEMPLATE, s);
-	free(s);
+	bsdconv_free(s);
 	RETVAL_STRING(s2, 1);
 	free(s2);
 }
@@ -335,7 +335,7 @@ PHP_FUNCTION(bsdconv_error){
 	char *c;
 	c=bsdconv_error();
 	RETVAL_STRING(c, 1);
-	free(c);
+	bsdconv_free(c);
 }
 /* }}} */
 
@@ -355,10 +355,10 @@ PHP_FUNCTION(bsdconv_codecs_list){
 	p=list;
 	while(*p!=NULL){
 		add_next_index_string(return_value, *p, 1);
-		free(*p);
+		bsdconv_free(*p);
 		p+=1;
 	}
-	free(list);
+	bsdconv_free(list);
 }
 /* }}} */
 
