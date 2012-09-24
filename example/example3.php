@@ -10,4 +10,6 @@ $c->ctl(BSDCONV_CTL_ATTACH_OUTPUT_FILE, $list, 0);
 $c->conv("忠孝復興忠孝敦化");
 bsdconv_fclose($score);
 bsdconv_fclose($list);
+
+echo "bsdconv utf-32be:utf-8 characters_list.txt\n";
 ?>
