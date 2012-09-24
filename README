@@ -5,4 +5,4 @@ bool bsdconv_destroy(resource handle)
 array bsdconv_info(resource handle);
 string bsdconv_error(void)
 
-see example.php for example
+see example/* for example
