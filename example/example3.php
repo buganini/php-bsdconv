@@ -7,7 +7,15 @@ $c=new Bsdconv("utf-8:score_train:null");
 
 $c->ctl(BSDCONV_CTL_ATTACH_SCORE, $score, 0);
 $c->ctl(BSDCONV_CTL_ATTACH_OUTPUT_FILE, $list, 0);
-$c->conv("忠孝復興忠孝敦化");
+
+$fp=fopen($argv[1],"r");
+$c->init();
+while(!feof($fp)){
+	$c->conv_chunk(fread($fp, 1024));
+}
+$c->conv_chunk_last("");
+fclose($fp);
+
 bsdconv_fclose($score);
 bsdconv_fclose($list);
 
