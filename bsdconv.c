@@ -26,6 +26,12 @@
 
 #include <bsdconv.h>
 
+/* True global resources - no need for thread safety here */
+static int le_bsdconv_fp;
+
+static void bsdconv_fp_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC){
+	fclose((FILE *) rsrc->ptr);
+}
 
 zend_class_entry *bsdconv_ce;
 
@@ -138,6 +144,34 @@ PHP_METHOD(Bsdconv, init){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
 	bsdconv_init(ins);
+}
+/* }}} */
+
+/* {{{ proto mixed ctl(int ctl, resource res, int num)
+  bsdconv ctl
+*/
+PHP_METHOD(Bsdconv, ctl){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
+	zval *res=NULL;
+	long ctl;
+	long num;
+	void *ptr;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lrl", &ctl, &res, &num) == FAILURE){
+		RETURN_BOOL(0);
+	}
+
+	switch(ctl){
+		case BSDCONV_ATTACH_SCORE:
+		case BSDCONV_ATTACH_OUTPUT_FILE:
+			ZEND_FETCH_RESOURCE(ptr, void *, &res, -1, "bsdconv fp", le_bsdconv_fp);
+			if(ptr==NULL){
+				RETURN_BOOL(0);
+			}
+			break;
+	}
+
+	bsdconv_ctl(ins, ctl, ptr, num);
 }
 /* }}} */
 
@@ -379,16 +413,71 @@ PHP_FUNCTION(bsdconv_codec_check){
 }
 /* }}} */
 
+/* {{{ proto resource bsdconv_fopen(string path, string mode)
+  fopen
+*/
+PHP_FUNCTION(bsdconv_fopen){
+	char *pc, *mc;
+	int pl, ml;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &pc, &pl, &mc, &ml) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	FILE *r=fopen(pc, mc);
+	if(r==NULL) RETURN_BOOL(0);
+	ZEND_REGISTER_RESOURCE(return_value, r, le_bsdconv_fp);
+}
+/* }}} */
+
+/* {{{ proto bool bsdconv_fclose(resource fp)
+  fclose
+*/
+PHP_FUNCTION(bsdconv_fclose){
+	zval *p=NULL;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &p) == FAILURE){
+		RETURN_BOOL(0);
+	}
+	if(zend_list_delete(Z_RESVAL_P(p)) == FAILURE){
+		RETURN_BOOL(0);
+	}
+	RETURN_BOOL(1);
+}
+/* }}} */
+
+/* {{{ proto array(fp, path) bsdconv_mktemp(string template)
+  mkstemp
+*/
+PHP_FUNCTION(bsdconv_mktemp){
+	char *c;
+	int l;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &c, &l) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	char *t=strdup(c);
+	int fd=bsdconv_mkstemp(t);
+	if(fd==-1) RETURN_BOOL(0);
+	FILE *r=fdopen(fd, "wb+");
+	if(r==NULL) RETURN_BOOL(0);
+	zval *res;
+	MAKE_STD_ZVAL(res);
+	ZEND_REGISTER_RESOURCE(res, r, le_bsdconv_fp);
+	array_init(return_value);
+	add_next_index_resource(return_value, Z_RESVAL_P(res));
+	add_next_index_string(return_value, t, 1);
+	free(t);
+}
+/* }}} */
+
 zend_function_entry bsdconv_methods[] = {
 	PHP_ME(Bsdconv,  __construct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 	PHP_ME(Bsdconv,  __destruct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
-	PHP_ME(Bsdconv,  __toString,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
+	PHP_ME(Bsdconv,  __toString,	NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, insert_phase,	NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, insert_codec,	NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, replace_phase,	NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, replace_codec,	NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, conv,		NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, init,		NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, ctl,		NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, conv_chunk,	NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, conv_chunk_last,NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, conv_file,	NULL, ZEND_ACC_PUBLIC)
@@ -404,6 +493,9 @@ zend_function_entry bsdconv_functions[] = {
 	PHP_FE(bsdconv_error,		NULL)
 	PHP_FE(bsdconv_codecs_list,	NULL)
 	PHP_FE(bsdconv_codec_check,	NULL)
+	PHP_FE(bsdconv_fopen,		NULL)
+	PHP_FE(bsdconv_fclose,		NULL)
+	PHP_FE(bsdconv_mktemp,		NULL)
 	{NULL, NULL, NULL}	/* Must be the last line in bsdconv_functions[] */
 };
 /* }}} */
@@ -453,6 +545,7 @@ ZEND_GET_MODULE(bsdconv)
  */
 PHP_MINIT_FUNCTION(bsdconv)
 {
+	le_bsdconv_fp = zend_register_list_destructors_ex(bsdconv_fp_dtor, NULL, "bsdconv_fopen resource", module_number);
 	zend_class_entry ce;
 	INIT_CLASS_ENTRY(ce, "Bsdconv", bsdconv_methods);
 	bsdconv_ce = zend_register_internal_class(&ce TSRMLS_CC);
@@ -462,6 +555,11 @@ PHP_MINIT_FUNCTION(bsdconv)
 	REGISTER_LONG_CONSTANT("BSDCONV_FROM", FROM, CONST_CS|CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("BSDCONV_INTER", INTER, CONST_CS|CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("BSDCONV_TO", TO, CONST_CS|CONST_PERSISTENT);
+
+	REGISTER_LONG_CONSTANT("BSDCONV_CTL_ATTACH_SCORE", BSDCONV_ATTACH_SCORE, CONST_CS|CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("BSDCONV_CTL_SET_WIDE_AMBI", BSDCONV_SET_WIDE_AMBI, CONST_CS|CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("BSDCONV_CTL_SET_TRIM_WIDTH", BSDCONV_SET_TRIM_WIDTH, CONST_CS|CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("BSDCONV_CTL_ATTACH_OUTPUT_FILE", BSDCONV_ATTACH_OUTPUT_FILE, CONST_CS|CONST_PERSISTENT);
 	return SUCCESS;
 }
 /* }}} */
