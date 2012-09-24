@@ -6,3 +6,9 @@ array bsdconv_info(resource handle);
 string bsdconv_error(void)
 
 see example/* for example
+
+INSTALL:
+	phpize
+	./configure
+	make
+	sudo make install
