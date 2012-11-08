@@ -23,6 +23,11 @@
 #include "ext/standard/info.h"
 #include "php_bsdconv.h"
 
+#ifndef WIN32
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
 #include <bsdconv.h>
 
@@ -300,6 +305,13 @@ PHP_METHOD(Bsdconv, conv_file){
 		free(tmp);
 		RETURN_BOOL(0);
 	}
+
+#ifndef WIN32
+	struct stat stat;
+	fstat(fileno(inf), &stat);
+	fchown(fileno(otf), stat.st_uid, stat.st_gid);
+	fchmod(fileno(otf), stat.st_mode);
+#endif
 
 	bsdconv_init(ins);
 	do{
