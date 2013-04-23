@@ -79,70 +79,6 @@ PHP_METHOD(Bsdconv, __destruct){
 }
 
 /* }}} */
-/* {{{ proto int insert_phase(string conversion, int phase_type, int phasen)
-  alter bsdconv instance */
-PHP_METHOD(Bsdconv, insert_phase){
-	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-	struct bsdconv_instance *ins=obj->ins;
-	char *c;
-	int l;
-	long phase_type;
-	long phasen;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll", &c, &l, &phase_type, &phasen) == FAILURE){
-		RETURN_LONG(-1);
-	}
-	RETURN_LONG(bsdconv_insert_phase(ins, c, phase_type, phasen));
-}
-/* }}} */
-
-/* {{{ proto int insert_codec(resource ins, string conversion, int phasen, int codecn)
-  alter bsdconv instance */
-PHP_METHOD(Bsdconv, insert_codec){
-	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-	struct bsdconv_instance *ins=obj->ins;	char *c;
-	int l;
-	long phasen;
-	long codecn;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll", &c, &l, &phasen, &codecn) == FAILURE){
-		RETURN_LONG(-1);
-	}
-	RETURN_LONG(bsdconv_insert_codec(ins, c, phasen, codecn));
-}
-/* }}} */
-
-/* {{{ proto int replace_phase(resource ins, string conversion, int phase_type, int phasen)
-  alter bsdconv instance */
-PHP_METHOD(Bsdconv, replace_phase){
-	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-	struct bsdconv_instance *ins=obj->ins;
-	char *c;
-	int l;
-	long phase_type;
-	long phasen;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll", &c, &l, &phase_type, &phasen) == FAILURE){
-		RETURN_LONG(-1);
-	}
-	RETURN_LONG(bsdconv_replace_phase(ins, c, phase_type, phasen));
-}
-/* }}} */
-
-/* {{{ proto int replace_codec(resource ins, string conversion, int phasen, int codecn)
-  alter bsdconv instance */
-PHP_METHOD(Bsdconv, replace_codec){
-	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-	struct bsdconv_instance *ins=obj->ins;
-	char *c;
-	int l;
-	long phasen;
-	long codecn;
-	zval *r=NULL;
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sll", &c, &l, &phasen, &codecn) == FAILURE){
-		RETURN_LONG(-1);
-	}
-	RETURN_LONG(bsdconv_replace_codec(ins, c, phasen, codecn));
-}
-/* }}} */
-
 /* {{{ proto void init()
   initialize/reset bsdconv instance */
 PHP_METHOD(Bsdconv, init){
@@ -374,6 +310,74 @@ PHP_METHOD(Bsdconv, __toString){
 }
 /* }}} */
 
+/* {{{ proto int bsdconv_insert_phase(string conversion, string codecs, int phase_type, int phasen)
+  alter bsdconv instance */
+PHP_FUNCTION(bsdconv_insert_phase){
+	char *conv;
+	char *c;
+	int l;
+	long phase_type;
+	long phasen;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssll", &conv, &l, &c, &l, &phase_type, &phasen) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	char *r=bsdconv_insert_phase(conv, c, phase_type, phasen);
+	RETVAL_STRING(r, 1);
+	bsdconv_free(r);
+}
+/* }}} */
+
+/* {{{ proto int bsdconv_insert_codec(string conversion, string codec, int phasen, int codecn)
+  alter bsdconv instance */
+PHP_FUNCTION(bsdconv_insert_codec){
+	char *conv;
+	char *c;
+	int l;
+	long phasen;
+	long codecn;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssll", &conv, &l, &c, &l, &phasen, &codecn) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	char *r=bsdconv_insert_codec(conv, c, phasen, codecn);
+	RETVAL_STRING(r, 1);
+	bsdconv_free(r);
+}
+/* }}} */
+
+/* {{{ proto int bsdconv_replace_phase(string conversion, string codecs, int phase_type, int phasen)
+  alter bsdconv instance */
+PHP_FUNCTION(bsdconv_replace_phase){
+	char *conv;
+	char *c;
+	int l;
+	long phase_type;
+	long phasen;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssll", &conv, &l, &c, &l, &phase_type, &phasen) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	char *r=bsdconv_replace_phase(conv, c, phase_type, phasen);
+	RETVAL_STRING(r, 1);
+	bsdconv_free(r);
+}
+/* }}} */
+
+/* {{{ proto int bsdconv_replace_codec(string conversion, string codec, int phasen, int codecn)
+  alter bsdconv instance */
+PHP_FUNCTION(bsdconv_replace_codec){
+	char *conv;
+	char *c;
+	int l;
+	long phasen;
+	long codecn;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssll", &conv, &l, &c, &l, &phasen, &codecn) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	char *r=bsdconv_replace_codec(conv, c, phasen, codecn);
+	RETVAL_STRING(r, 1);
+	bsdconv_free(r);
+}
+/* }}} */
+
 /* {{{ proto string bsdconv_error(void)
   bsdconv error message
 */
@@ -483,10 +487,6 @@ zend_function_entry bsdconv_methods[] = {
 	PHP_ME(Bsdconv,  __construct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
 	PHP_ME(Bsdconv,  __destruct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
 	PHP_ME(Bsdconv,  __toString,	NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, insert_phase,	NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, insert_codec,	NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, replace_phase,	NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, replace_codec,	NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, conv,		NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, init,		NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, ctl,		NULL, ZEND_ACC_PUBLIC)
@@ -502,6 +502,10 @@ zend_function_entry bsdconv_methods[] = {
  * Every user visible function must have an entry in bsdconv_functions[].
  */
 zend_function_entry bsdconv_functions[] = {
+	PHP_FE(bsdconv_insert_phase,	NULL)
+	PHP_FE(bsdconv_insert_codec,	NULL)
+	PHP_FE(bsdconv_replace_phase,	NULL)
+	PHP_FE(bsdconv_replace_codec,	NULL)
 	PHP_FE(bsdconv_error,		NULL)
 	PHP_FE(bsdconv_codecs_list,	NULL)
 	PHP_FE(bsdconv_codec_check,	NULL)
