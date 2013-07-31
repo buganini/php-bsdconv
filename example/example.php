@@ -7,7 +7,7 @@ if(!$c){
 	exit;
 }
 echo $c->conv($s);
-$i=$c->info();
+$i=$c->counter();
 unset($c);
 echo "\n\n=======Conversino Info=======\n";
 print_r($i);

@@ -273,20 +273,41 @@ PHP_METHOD(Bsdconv, conv_file){
 }
 /* }}} */
 
-/* {{{ proto array info()
-  bsdconv conversion info function
+/* {{{ proto mixed counter([counter])
+  get counter(s) value
 */
-PHP_METHOD(Bsdconv, info){
+PHP_METHOD(Bsdconv, counter){
+	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+	struct bsdconv_instance *ins=obj->ins;
+	char *key=NULL;
+	int l;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &key, &l) == FAILURE){
+		RETURN_BOOL(0);
+	}
+
+	if(key){
+		bsdconv_counter_t *v=bsdconv_counter(ins, key);
+		RETURN_LONG((long)(*v));
+	}else{
+		array_init(return_value);
+		struct bsdconv_counter_entry *p=ins->counter;
+		while(p){
+			add_assoc_long(return_value, p->key, (long)(p->val));
+			p=p->next;
+		}
+	}
+}
+/* }}} */
+
+/* {{{ proto void counter_reset()
+  reset all counters
+*/
+PHP_METHOD(Bsdconv, counter_reset){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
 
-	array_init(return_value);
-	add_assoc_long(return_value, "ierr", ins->ierr);
-	add_assoc_long(return_value, "oerr", ins->oerr);
-	add_assoc_double(return_value, "score", ins->score);
-	add_assoc_long(return_value, "full", ins->full);
-	add_assoc_long(return_value, "half", ins->half);
-	add_assoc_long(return_value, "ambi", ins->ambi);
+	bsdconv_counter_reset(ins);
 }
 /* }}} */
 
@@ -400,7 +421,7 @@ PHP_FUNCTION(bsdconv_codecs_list){
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &phase_type) == FAILURE){
 		RETURN_BOOL(0);
 	}
-	
+
 	list=bsdconv_codecs_list(phase_type);
 	p=list;
 	while(*p!=NULL){
@@ -493,7 +514,8 @@ zend_function_entry bsdconv_methods[] = {
 	PHP_ME(Bsdconv, conv_chunk,	NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, conv_chunk_last,NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Bsdconv, conv_file,	NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, info,		NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, counter,	NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, counter_reset,	NULL, ZEND_ACC_PUBLIC)
 	{NULL, NULL, NULL}
 };
 
