@@ -306,8 +306,14 @@ PHP_METHOD(Bsdconv, counter){
 PHP_METHOD(Bsdconv, counter_reset){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
+	char *key=NULL;
+	int l;
 
-	bsdconv_counter_reset(ins);
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &key, &l) == FAILURE){
+		RETURN_BOOL(0);
+	}
+
+	bsdconv_counter_reset(ins, key);
 }
 /* }}} */
 
