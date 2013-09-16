@@ -136,6 +136,7 @@ PHP_METHOD(Bsdconv, conv){
 	ins->input.data=c;
 	ins->input.len=l;
 	ins->input.flags=0;
+	ins->input.next=NULL;
 	ins->output.data=NULL;
 	ins->flush=1;
 	bsdconv(ins);
@@ -166,6 +167,7 @@ PHP_METHOD(Bsdconv, conv_chunk){
 	ins->input.data=c;
 	ins->input.len=l;
 	ins->input.flags=0;
+	ins->input.next=NULL;
 	ins->output.data=NULL;
 	bsdconv(ins);
 
@@ -195,6 +197,7 @@ PHP_METHOD(Bsdconv, conv_chunk_last){
 	ins->input.data=c;
 	ins->input.len=l;
 	ins->input.flags=0;
+	ins->input.next=NULL;
 	ins->output.data=NULL;
 	ins->flush=1;
 	bsdconv(ins);
@@ -255,6 +258,7 @@ PHP_METHOD(Bsdconv, conv_file){
 		ins->input.data=in;
 		ins->input.len=fread(in, 1, IBUFLEN, inf);
 		ins->input.flags|=F_FREE;
+		ins->input.next=NULL;
 		if(ins->input.len==0){
 			ins->flush=1;
 		}
