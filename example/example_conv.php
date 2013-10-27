@@ -8,7 +8,9 @@ if(!$c){
 }
 echo $c->conv($s);
 $i=$c->counter();
-unset($c);
 echo "\n\n=======Conversino Info=======\n";
 print_r($i);
+$c->counter_reset("HALF");
+print_r($c->counter());
+unset($c);
 ?>
