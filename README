@@ -12,3 +12,5 @@ INSTALL:
 	./configure
 	make
 	sudo make install
+
+IRC: irc://irc.freenode.net#bsdconv
