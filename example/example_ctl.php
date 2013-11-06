@@ -3,7 +3,7 @@ list($score,$score_path)=bsdconv_mktemp("score.XXXXXX");
 $list=bsdconv_fopen("characters_list.txt","w+");
 unlink($score_path);
 
-$c=new Bsdconv("utf-8:score_train:null");
+$c=new Bsdconv("utf-8:score-train:null");
 
 $c->ctl(BSDCONV_CTL_ATTACH_SCORE, $score, 0);
 $c->ctl(BSDCONV_CTL_ATTACH_OUTPUT_FILE, $list, 0);
