@@ -600,6 +600,7 @@ PHP_MINIT_FUNCTION(bsdconv)
 	bsdconv_ce->create_object = bsdconv_create_handler;
 	memcpy(&bsdconv_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	bsdconv_object_handlers.clone_obj = NULL;
+	REGISTER_LONG_CONSTANT("BSDCONV_FILTER", FILTER, CONST_CS|CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("BSDCONV_FROM", FROM, CONST_CS|CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("BSDCONV_INTER", INTER, CONST_CS|CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("BSDCONV_TO", TO, CONST_CS|CONST_PERSISTENT);
