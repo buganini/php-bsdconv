@@ -1,6 +1,7 @@
 PHP binding API
 ==================
 
+.. php:const:: BSDCONV_FILTER
 .. php:const:: BSDCONV_FROM
 .. php:const:: BSDCONV_INTER
 .. php:const:: BSDCONV_TO
@@ -33,13 +34,13 @@ PHP binding API
 
 	Get error message
 
-.. php:function:: bsdconv_codecs_list($phase_type)
+.. php:function:: bsdconv_modules_list($type)
 
-	Get codecs list
+	Get modules list of specified type
 
-.. php:function:: bsdconv_codec_check($phase_type, $codec)
+.. php:function:: bsdconv_module_check($type, $module)
 
-	Check codec availability with given phase type and codec name
+	Check availability with given type and module name
 
 .. php:function:: bsdconv_fopen($path, $mode)
 
