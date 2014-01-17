@@ -559,7 +559,7 @@ zend_module_entry bsdconv_module_entry = {
 	NULL,
 	NULL,
 	PHP_MINFO(bsdconv),
-	"11.1.0", /* Replace with version number for your extension */
+	"11.2.0", /* Replace with version number for your extension */
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
