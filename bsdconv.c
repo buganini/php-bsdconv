@@ -420,10 +420,10 @@ PHP_FUNCTION(bsdconv_error){
 }
 /* }}} */
 
-/* {{{ proto array bsdconv_codecs_list(integer)
+/* {{{ proto array bsdconv_modules_list(integer)
   list codecs
 */
-PHP_FUNCTION(bsdconv_codecs_list){
+PHP_FUNCTION(bsdconv_modules_list){
 	array_init(return_value);
 	char **list;
 	char **p;
@@ -432,7 +432,7 @@ PHP_FUNCTION(bsdconv_codecs_list){
 		RETURN_BOOL(0);
 	}
 
-	list=bsdconv_codecs_list(phase_type);
+	list=bsdconv_modules_list(phase_type);
 	p=list;
 	while(*p!=NULL){
 		add_next_index_string(return_value, *p, 1);
@@ -443,17 +443,17 @@ PHP_FUNCTION(bsdconv_codecs_list){
 }
 /* }}} */
 
-/* {{{ proto bool bsdconv_codec_check(int type, string codec)
+/* {{{ proto bool bsdconv_module_check(int type, string codec)
   check if a codec is available
 */
-PHP_FUNCTION(bsdconv_codec_check){
+PHP_FUNCTION(bsdconv_module_check){
 	char *c;
 	int l;
 	long phase_type;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls", &phase_type, &c, &l) == FAILURE){
 		RETURN_LONG(-1);
 	}
-	if(bsdconv_codec_check(phase_type, c)){
+	if(bsdconv_module_check(phase_type, c)){
 		RETURN_BOOL(1);
 	}
 	RETURN_BOOL(0);
@@ -539,8 +539,8 @@ zend_function_entry bsdconv_functions[] = {
 	PHP_FE(bsdconv_replace_phase,	NULL)
 	PHP_FE(bsdconv_replace_codec,	NULL)
 	PHP_FE(bsdconv_error,		NULL)
-	PHP_FE(bsdconv_codecs_list,	NULL)
-	PHP_FE(bsdconv_codec_check,	NULL)
+	PHP_FE(bsdconv_modules_list,	NULL)
+	PHP_FE(bsdconv_module_check,	NULL)
 	PHP_FE(bsdconv_fopen,		NULL)
 	PHP_FE(bsdconv_fclose,		NULL)
 	PHP_FE(bsdconv_mktemp,		NULL)
@@ -559,7 +559,7 @@ zend_module_entry bsdconv_module_entry = {
 	NULL,
 	NULL,
 	PHP_MINFO(bsdconv),
-	"11.2.0", /* Replace with version number for your extension */
+	"12.0.0", /* Replace with version number for your extension */
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
