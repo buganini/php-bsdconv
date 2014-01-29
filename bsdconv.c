@@ -443,6 +443,25 @@ PHP_FUNCTION(bsdconv_modules_list){
 }
 /* }}} */
 
+PHP_FUNCTION(bsdconv_codecs_list){
+	array_init(return_value);
+	char **list;
+	char **p;
+	long phase_type;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &phase_type) == FAILURE){
+		RETURN_BOOL(0);
+	}
+
+	list=bsdconv_modules_list(phase_type);
+	p=list;
+	while(*p!=NULL){
+		add_next_index_string(return_value, *p, 1);
+		bsdconv_free(*p);
+		p+=1;
+	}
+	bsdconv_free(list);
+}
+
 /* {{{ proto bool bsdconv_module_check(int type, string codec)
   check if a codec is available
 */
@@ -459,6 +478,19 @@ PHP_FUNCTION(bsdconv_module_check){
 	RETURN_BOOL(0);
 }
 /* }}} */
+
+PHP_FUNCTION(bsdconv_codec_check){
+	char *c;
+	int l;
+	long phase_type;
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls", &phase_type, &c, &l) == FAILURE){
+		RETURN_LONG(-1);
+	}
+	if(bsdconv_module_check(phase_type, c)){
+		RETURN_BOOL(1);
+	}
+	RETURN_BOOL(0);
+}
 
 /* {{{ proto resource bsdconv_fopen(string path, string mode)
   fopen
@@ -539,6 +571,8 @@ zend_function_entry bsdconv_functions[] = {
 	PHP_FE(bsdconv_replace_phase,	NULL)
 	PHP_FE(bsdconv_replace_codec,	NULL)
 	PHP_FE(bsdconv_error,		NULL)
+	PHP_FE(bsdconv_codecs_list,	NULL)
+	PHP_FE(bsdconv_codec_check,	NULL)
 	PHP_FE(bsdconv_modules_list,	NULL)
 	PHP_FE(bsdconv_module_check,	NULL)
 	PHP_FE(bsdconv_fopen,		NULL)
