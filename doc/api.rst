@@ -34,9 +34,17 @@ PHP binding API
 
 	Get error message
 
+.. php:function:: bsdconv_codecs_list($type)
+
+	DEPRECATED: Use :php:func:`bsdconv_modules_list` instead
+
 .. php:function:: bsdconv_modules_list($type)
 
 	Get modules list of specified type
+
+.. php:function:: bsdconv_codec_check($type, $module)
+
+	DEPRECATED: Use :php:func:`bsdconv_module_check` instead
 
 .. php:function:: bsdconv_module_check($type, $module)
 
