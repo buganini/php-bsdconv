@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2014 Kuan-Chung Chiu <buganini@gmail.com>
+ * Copyright (c) 2009-2016 Kuan-Chung Chiu <buganini@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,6 +40,16 @@
 
 #include <bsdconv.h>
 
+#if PHP_MAJOR_VERSION < 7
+typedef int str_size_t;
+#define _COMPAT_RETVAL_STRINGL(s) RETVAL_STRING(s, 1)
+#else
+typedef size_t str_size_t;
+#define _COMPAT_RETVAL_STRINGL(s) RETVAL_STRINGL(s, strlen(s))
+#define zend_rsrc_list_entry zend_resource
+#define zend_object_store_get_object(x, ...) ((char*)Z_OBJ_P(x) - XtOffsetOf(struct bsdconv_object, std))
+#endif
+
 /* True global resources - no need for thread safety here */
 static int le_bsdconv_fp;
 
@@ -51,10 +61,17 @@ zend_class_entry *bsdconv_ce;
 
 zend_object_handlers bsdconv_object_handlers;
 
+#if PHP_MAJOR_VERSION < 7
 struct bsdconv_object {
-    zend_object std;
-    struct bsdconv_instance *ins;
+	zend_object std;
+	struct bsdconv_instance *ins;
 };
+#else
+struct bsdconv_object {
+	struct bsdconv_instance *ins;
+	zend_object std;
+};
+#endif
 
 #define IBUFLEN 1024
 
@@ -66,7 +83,8 @@ static void bsdconv_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC){
   create bsdconv instance */
 PHP_METHOD(Bsdconv,  __construct){
 	char *c;
-	int l;
+	str_size_t l;
+
 	struct bsdconv_instance *ins;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &c, &l) == FAILURE){
 		return;
@@ -114,7 +132,11 @@ PHP_METHOD(Bsdconv, ctl){
 	switch(ctl){
 		case BSDCONV_CTL_ATTACH_SCORE:
 		case BSDCONV_CTL_ATTACH_OUTPUT_FILE:
+#if PHP_MAJOR_VERSION < 7
 			ZEND_FETCH_RESOURCE(ptr, void *, &res, -1, "bsdconv fp", le_bsdconv_fp);
+#else
+			ptr = zend_fetch_resource(Z_RES_P(res), "bsdconv fp", le_bsdconv_fp);
+#endif
 			if(ptr==NULL){
 				RETURN_BOOL(0);
 			}
@@ -132,7 +154,7 @@ PHP_METHOD(Bsdconv, conv){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
 	char *c;
-	int l;
+	str_size_t l;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &c, &l) == FAILURE){
 		RETURN_BOOL(0);
 	}
@@ -150,10 +172,18 @@ PHP_METHOD(Bsdconv, conv){
 	ins->flush=1;
 	bsdconv(ins);
 
+#if PHP_MAJOR_VERSION < 7
 	ins->output.data=emalloc(ins->output.len);
 	bsdconv(ins);
 
 	RETURN_STRINGL(ins->output.data, ins->output.len, 0);
+#else
+	zend_string *ret = zend_string_alloc(ins->output.len, 0);
+	ins->output.data=ret->val;
+	bsdconv(ins);
+
+	RETURN_STR(ret);
+#endif
 }
 /* }}} */
 
@@ -164,7 +194,7 @@ PHP_METHOD(Bsdconv, conv_chunk){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
 	char *c;
-	int l;
+	str_size_t l;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &c, &l) == FAILURE){
 		RETURN_BOOL(0);
 	}
@@ -180,10 +210,18 @@ PHP_METHOD(Bsdconv, conv_chunk){
 	ins->output.data=NULL;
 	bsdconv(ins);
 
+#if PHP_MAJOR_VERSION < 7
 	ins->output.data=emalloc(ins->output.len);
 	bsdconv(ins);
 
 	RETURN_STRINGL(ins->output.data, ins->output.len, 0);
+#else
+	zend_string *ret = zend_string_alloc(ins->output.len, 0);
+	ins->output.data=ret->val;
+	bsdconv(ins);
+
+	RETURN_STR(ret);
+#endif
 }
 /* }}} */
 
@@ -194,7 +232,7 @@ PHP_METHOD(Bsdconv, conv_chunk_last){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
 	char *c;
-	int l;
+	str_size_t l;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &c, &l) == FAILURE){
 		RETURN_BOOL(0);
 	}
@@ -211,10 +249,18 @@ PHP_METHOD(Bsdconv, conv_chunk_last){
 	ins->flush=1;
 	bsdconv(ins);
 
+#if PHP_MAJOR_VERSION < 7
 	ins->output.data=emalloc(ins->output.len);
 	bsdconv(ins);
 
 	RETURN_STRINGL(ins->output.data, ins->output.len, 0);
+#else
+	zend_string *ret = zend_string_alloc(ins->output.len, 0);
+	ins->output.data=ret->val;
+	bsdconv(ins);
+
+	RETURN_STR(ret);
+#endif
 }
 /* }}} */
 
@@ -225,7 +271,7 @@ PHP_METHOD(Bsdconv, conv_file){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
 	char *s1, *s2;
-	int l,l2;
+	str_size_t l,l2;
 	FILE *inf, *otf;
 	char *in;
 	char *tmp;
@@ -293,7 +339,7 @@ PHP_METHOD(Bsdconv, counter){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
 	char *key=NULL;
-	int l;
+	str_size_t l;
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &key, &l) == FAILURE){
 		RETURN_BOOL(0);
@@ -320,7 +366,7 @@ PHP_METHOD(Bsdconv, counter_reset){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
 	char *key=NULL;
-	int l;
+	str_size_t l;
 
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &key, &l) == FAILURE){
 		RETURN_BOOL(0);
@@ -338,15 +384,23 @@ PHP_METHOD(Bsdconv, __toString){
 	struct bsdconv_object *obj=(struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	struct bsdconv_instance *ins=obj->ins;
 	char *s;
-	char *s2;
 	int len=sizeof(TEMPLATE);
 	s=bsdconv_pack(ins);
 	len+=strlen(s);
+
+#if PHP_MAJOR_VERSION < 7
+	char *s2;
 	s2=malloc(len);
 	sprintf(s2, TEMPLATE, s);
 	bsdconv_free(s);
 	RETVAL_STRING(s2, 1);
 	free(s2);
+#else
+	zend_string *ret = zend_string_alloc(len, 0);
+	sprintf(ret->val, TEMPLATE, s);
+	bsdconv_free(s);
+	RETURN_STR(ret);
+#endif
 }
 /* }}} */
 
@@ -355,14 +409,14 @@ PHP_METHOD(Bsdconv, __toString){
 PHP_FUNCTION(bsdconv_insert_phase){
 	char *conv;
 	char *c;
-	int l;
+	str_size_t l;
 	long phase_type;
 	long phasen;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssll", &conv, &l, &c, &l, &phase_type, &phasen) == FAILURE){
 		RETURN_LONG(-1);
 	}
 	char *r=bsdconv_insert_phase(conv, c, phase_type, phasen);
-	RETVAL_STRING(r, 1);
+	_COMPAT_RETVAL_STRINGL(r);
 	bsdconv_free(r);
 }
 /* }}} */
@@ -372,14 +426,14 @@ PHP_FUNCTION(bsdconv_insert_phase){
 PHP_FUNCTION(bsdconv_insert_codec){
 	char *conv;
 	char *c;
-	int l;
+	str_size_t l;
 	long phasen;
 	long codecn;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssll", &conv, &l, &c, &l, &phasen, &codecn) == FAILURE){
 		RETURN_LONG(-1);
 	}
 	char *r=bsdconv_insert_codec(conv, c, phasen, codecn);
-	RETVAL_STRING(r, 1);
+	_COMPAT_RETVAL_STRINGL(r);
 	bsdconv_free(r);
 }
 /* }}} */
@@ -389,14 +443,14 @@ PHP_FUNCTION(bsdconv_insert_codec){
 PHP_FUNCTION(bsdconv_replace_phase){
 	char *conv;
 	char *c;
-	int l;
+	str_size_t l;
 	long phase_type;
 	long phasen;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssll", &conv, &l, &c, &l, &phase_type, &phasen) == FAILURE){
 		RETURN_LONG(-1);
 	}
 	char *r=bsdconv_replace_phase(conv, c, phase_type, phasen);
-	RETVAL_STRING(r, 1);
+	_COMPAT_RETVAL_STRINGL(r);
 	bsdconv_free(r);
 }
 /* }}} */
@@ -406,14 +460,14 @@ PHP_FUNCTION(bsdconv_replace_phase){
 PHP_FUNCTION(bsdconv_replace_codec){
 	char *conv;
 	char *c;
-	int l;
+	str_size_t l;
 	long phasen;
 	long codecn;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssll", &conv, &l, &c, &l, &phasen, &codecn) == FAILURE){
 		RETURN_LONG(-1);
 	}
 	char *r=bsdconv_replace_codec(conv, c, phasen, codecn);
-	RETVAL_STRING(r, 1);
+	_COMPAT_RETVAL_STRINGL(r);
 	bsdconv_free(r);
 }
 /* }}} */
@@ -424,7 +478,7 @@ PHP_FUNCTION(bsdconv_replace_codec){
 PHP_FUNCTION(bsdconv_error){
 	char *c;
 	c=bsdconv_error();
-	RETVAL_STRING(c, 1);
+	_COMPAT_RETVAL_STRINGL(c);
 	bsdconv_free(c);
 }
 /* }}} */
@@ -444,7 +498,11 @@ PHP_FUNCTION(bsdconv_modules_list){
 	list=bsdconv_modules_list(phase_type);
 	p=list;
 	while(*p!=NULL){
+#if PHP_MAJOR_VERSION < 7
 		add_next_index_string(return_value, *p, 1);
+#else
+		add_next_index_string(return_value, *p);
+#endif
 		bsdconv_free(*p);
 		p+=1;
 	}
@@ -464,7 +522,11 @@ PHP_FUNCTION(bsdconv_codecs_list){
 	list=bsdconv_modules_list(phase_type);
 	p=list;
 	while(*p!=NULL){
+#if PHP_MAJOR_VERSION < 7
 		add_next_index_string(return_value, *p, 1);
+#else
+		add_next_index_string(return_value, *p);
+#endif
 		bsdconv_free(*p);
 		p+=1;
 	}
@@ -476,7 +538,7 @@ PHP_FUNCTION(bsdconv_codecs_list){
 */
 PHP_FUNCTION(bsdconv_module_check){
 	char *c;
-	int l;
+	str_size_t l;
 	long phase_type;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls", &phase_type, &c, &l) == FAILURE){
 		RETURN_LONG(-1);
@@ -490,7 +552,7 @@ PHP_FUNCTION(bsdconv_module_check){
 
 PHP_FUNCTION(bsdconv_codec_check){
 	char *c;
-	int l;
+	str_size_t l;
 	long phase_type;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ls", &phase_type, &c, &l) == FAILURE){
 		RETURN_LONG(-1);
@@ -506,13 +568,17 @@ PHP_FUNCTION(bsdconv_codec_check){
 */
 PHP_FUNCTION(bsdconv_fopen){
 	char *pc, *mc;
-	int pl, ml;
+	str_size_t pl, ml;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &pc, &pl, &mc, &ml) == FAILURE){
 		RETURN_LONG(-1);
 	}
 	FILE *r=fopen(pc, mc);
 	if(r==NULL) RETURN_BOOL(0);
+#if PHP_MAJOR_VERSION < 7
 	ZEND_REGISTER_RESOURCE(return_value, r, le_bsdconv_fp);
+#else
+	RETURN_RES(zend_register_resource(r, le_bsdconv_fp));
+#endif
 }
 /* }}} */
 
@@ -524,7 +590,11 @@ PHP_FUNCTION(bsdconv_fclose){
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &p) == FAILURE){
 		RETURN_BOOL(0);
 	}
+#if PHP_MAJOR_VERSION < 7
 	if(zend_list_delete(Z_RESVAL_P(p)) == FAILURE){
+#else
+	if(zend_list_delete(Z_RES_P(p)) == FAILURE){
+#endif
 		RETURN_BOOL(0);
 	}
 	RETURN_BOOL(1);
@@ -536,7 +606,7 @@ PHP_FUNCTION(bsdconv_fclose){
 */
 PHP_FUNCTION(bsdconv_mktemp){
 	char *c;
-	int l;
+	str_size_t l;
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &c, &l) == FAILURE){
 		RETURN_LONG(-1);
 	}
@@ -545,12 +615,20 @@ PHP_FUNCTION(bsdconv_mktemp){
 	if(fd==-1) RETURN_BOOL(0);
 	FILE *r=fdopen(fd, "wb+");
 	if(r==NULL) RETURN_BOOL(0);
+	array_init(return_value);
+
+#if PHP_MAJOR_VERSION < 7
 	zval *res;
 	MAKE_STD_ZVAL(res);
 	ZEND_REGISTER_RESOURCE(res, r, le_bsdconv_fp);
-	array_init(return_value);
 	add_next_index_resource(return_value, Z_RESVAL_P(res));
 	add_next_index_string(return_value, t, 1);
+#else
+	zend_resource *res;
+	res = zend_register_resource(r, le_bsdconv_fp);
+	add_next_index_resource(return_value, res);
+	add_next_index_string(return_value, t);
+#endif
 	free(t);
 }
 /* }}} */
@@ -607,11 +685,16 @@ zend_module_entry bsdconv_module_entry = {
 };
 /* }}} */
 
+#if PHP_MAJOR_VERSION < 7
 void bsdconv_free_storage(void *object TSRMLS_DC)
+#else
+void bsdconv_free_storage(zend_object *object TSRMLS_DC)
+#endif
 {
 	efree(object);
 }
 
+#if PHP_MAJOR_VERSION < 7
 zend_object_value bsdconv_create_handler(zend_class_entry *type TSRMLS_DC)
 {
 	zval *tmp;
@@ -627,6 +710,20 @@ zend_object_value bsdconv_create_handler(zend_class_entry *type TSRMLS_DC)
 
 	return retval;
 }
+#else
+zend_object * bsdconv_create_handler(zend_class_entry *type TSRMLS_DC)
+{
+	struct bsdconv_object *intern = ecalloc(1, sizeof(struct bsdconv_object) + zend_object_properties_size(type));
+	zend_object_std_init(&intern->std, type TSRMLS_CC);
+	object_properties_init(&intern->std, type TSRMLS_CC);
+	bsdconv_object_handlers.offset = XtOffsetOf(struct bsdconv_object, std);
+	bsdconv_object_handlers.free_obj = bsdconv_free_storage;
+
+	intern->std.handlers = &bsdconv_object_handlers;
+
+	return &intern->std;
+}
+#endif
 
 #ifdef COMPILE_DL_BSDCONV
 ZEND_GET_MODULE(bsdconv)
