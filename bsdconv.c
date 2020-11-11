@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2016 Kuan-Chung Chiu <buganini@gmail.com>
+ * Copyright (c) 2009-2020 Kuan-Chung Chiu <buganini@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,6 +48,12 @@ typedef size_t str_size_t;
 #define _COMPAT_RETVAL_STRINGL(s) RETVAL_STRINGL(s, strlen(s))
 #define zend_rsrc_list_entry zend_resource
 #define zend_object_store_get_object(x, ...) ((char*)Z_OBJ_P(x) - XtOffsetOf(struct bsdconv_object, std))
+#endif
+
+#if PHP_MAJOR_VERSION >= 8
+#define TSRMLS_DC
+#define TSRMLS_CC
+#define ZEND_ACC_DTOR 0
 #endif
 
 /* True global resources - no need for thread safety here */
