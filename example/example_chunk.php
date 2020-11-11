@@ -1,8 +1,10 @@
 #!/usr/bin/env php
 <?php
 $f=fopen('php://stdin','r');
-$c=new Bsdconv($argv[1]);
-if(!$c){
+try {
+	$c=new Bsdconv($argv[1]);
+}
+catch(Exception $e){
 	echo bsdconv_error()."\n";
 	exit;
 }

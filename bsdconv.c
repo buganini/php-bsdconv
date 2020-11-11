@@ -29,6 +29,7 @@
 
 #include "php.h"
 #include "php_ini.h"
+#include "zend_exceptions.h"
 #include "ext/standard/info.h"
 #include "php_bsdconv.h"
 
@@ -100,7 +101,10 @@ PHP_METHOD(Bsdconv,  __construct){
 		return;
 	}
 	ins=bsdconv_create(c);
-	if(ins==NULL)  RETURN_NULL();
+	if(ins==NULL){
+		zend_throw_exception(NULL, "Failed constructing bsdconv", 0);
+		return;
+	}
 	struct bsdconv_object *obj = (struct bsdconv_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
 	obj->ins = ins;
 }
