@@ -1,16 +1,16 @@
-#Documentation
+# Documentation
 
 	http://buganini.github.io/bsdconv/php-bsdconv/doc/api.html
 
 	see example/* for example
 
-#INSTALL
+# INSTALL
 
 	phpize
 	./configure
 	make
 	sudo make install
 
-#Support
+# Support
 
 	IRC: irc://irc.freenode.net#bsdconv
