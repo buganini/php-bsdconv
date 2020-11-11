@@ -54,6 +54,10 @@ typedef size_t str_size_t;
 #define TSRMLS_DC
 #define TSRMLS_CC
 #define ZEND_ACC_DTOR 0
+ZEND_BEGIN_ARG_INFO_EX(arginfo_void, 0, 0, 0)
+ZEND_END_ARG_INFO()
+#else
+#define arginfo_void NULL
 #endif
 
 /* True global resources - no need for thread safety here */
@@ -640,17 +644,17 @@ PHP_FUNCTION(bsdconv_mktemp){
 /* }}} */
 
 zend_function_entry bsdconv_methods[] = {
-	PHP_ME(Bsdconv,  __construct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-	PHP_ME(Bsdconv,  __destruct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
-	PHP_ME(Bsdconv,  __toString,	NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, conv,		NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, init,		NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, ctl,		NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, conv_chunk,	NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, conv_chunk_last,NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, conv_file,	NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, counter,	NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Bsdconv, counter_reset,	NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv,  __construct,	arginfo_void, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+	PHP_ME(Bsdconv,  __destruct,	arginfo_void, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
+	PHP_ME(Bsdconv,  __toString,	arginfo_void, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, conv,		arginfo_void, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, init,		arginfo_void, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, ctl,		arginfo_void, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, conv_chunk,	arginfo_void, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, conv_chunk_last,arginfo_void, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, conv_file,	arginfo_void, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, counter,	arginfo_void, ZEND_ACC_PUBLIC)
+	PHP_ME(Bsdconv, counter_reset,	arginfo_void, ZEND_ACC_PUBLIC)
 	{NULL, NULL, NULL}
 };
 
@@ -659,18 +663,18 @@ zend_function_entry bsdconv_methods[] = {
  * Every user visible function must have an entry in bsdconv_functions[].
  */
 zend_function_entry bsdconv_functions[] = {
-	PHP_FE(bsdconv_insert_phase,	NULL)
-	PHP_FE(bsdconv_insert_codec,	NULL)
-	PHP_FE(bsdconv_replace_phase,	NULL)
-	PHP_FE(bsdconv_replace_codec,	NULL)
-	PHP_FE(bsdconv_error,		NULL)
-	PHP_FE(bsdconv_codecs_list,	NULL)
-	PHP_FE(bsdconv_codec_check,	NULL)
-	PHP_FE(bsdconv_modules_list,	NULL)
-	PHP_FE(bsdconv_module_check,	NULL)
-	PHP_FE(bsdconv_fopen,		NULL)
-	PHP_FE(bsdconv_fclose,		NULL)
-	PHP_FE(bsdconv_mktemp,		NULL)
+	PHP_FE(bsdconv_insert_phase,	arginfo_void)
+	PHP_FE(bsdconv_insert_codec,	arginfo_void)
+	PHP_FE(bsdconv_replace_phase,	arginfo_void)
+	PHP_FE(bsdconv_replace_codec,	arginfo_void)
+	PHP_FE(bsdconv_error,		arginfo_void)
+	PHP_FE(bsdconv_codecs_list,	arginfo_void)
+	PHP_FE(bsdconv_codec_check,	arginfo_void)
+	PHP_FE(bsdconv_modules_list,	arginfo_void)
+	PHP_FE(bsdconv_module_check,	arginfo_void)
+	PHP_FE(bsdconv_fopen,		arginfo_void)
+	PHP_FE(bsdconv_fclose,		arginfo_void)
+	PHP_FE(bsdconv_mktemp,		arginfo_void)
 	{NULL, NULL, NULL}	/* Must be the last line in bsdconv_functions[] */
 };
 /* }}} */
