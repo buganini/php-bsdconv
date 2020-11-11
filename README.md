@@ -4,7 +4,7 @@
 
 	see example/* for example
 
-# INSTALL
+# Build and installation
 
 	phpize
 	./configure
